@@ -7,7 +7,7 @@
         insert into
         users(email, password, nickname, picture, provider, provider_id, verified, create_at)
         values
-        (#{email},#{password},#{nickname},#{picture},#{provider},#{provider_id},#{verified},now())
+        (#{email},#{password},#{nickname},#{picture},#{provider},#{providerId},#{verified},now())
     </insert>
     <select id="findByEmail" resultType="user">
         select * from users where email=#{email}

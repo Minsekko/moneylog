@@ -1,4 +1,4 @@
-package org.codenova.repository;
+package org.codenova.moneylog.repository;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

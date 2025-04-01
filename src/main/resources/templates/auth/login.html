@@ -1,27 +1,36 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>머니로그</title>
 </head>
 <body>
 <h2>로그인</h2>
-<form>
-  <p>
-    <input type="text"/>
-  </p>
-  <p>
-    <input type="password"/>
-  </p>
-  <p>
-    <input type="submit"/><button>로그인</button>
-  </p>
+<form th:action="@{/auth/login}" method="post">
+    <p>
+        <input type="text" name="email"/>
+    </p>
+    <p>
+        <input type="password" name="password"/>
+    </p>
+    <p>
+        <button type="submit"/>
+        로그인</button>
+    </p>
 </form>
-  <div>
+<div>
+
     <a th:href="@{https://kauth.kakao.com/oauth/authorize
                (client_id=${kakaoClientId}, redirect_uri=${kakaoRedirectUri},response_type='code')}">
-    <img th:src="@{/icons/kakao_login.png}"/>
+        <img th:src="@{/icons/kakao_login.png}"/>
     </a>
-  </div>
+</div>
+
+<div>
+    <a th:href="@{https://nid.naver.com/oauth2.0/authorize
+               (client_id=${naverClientId}, redirect_uri=${naverRedirectUri},state='codenova',response_type='code')}">
+        <img th:src="@{/icons/naver_login.png}"/>
+    </a>
+</div>
 </body>
 </html>

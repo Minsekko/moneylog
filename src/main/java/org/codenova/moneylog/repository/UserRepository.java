@@ -10,4 +10,10 @@ public interface UserRepository {
     public User findByEmail(@Param("email") String email); //@Param("email") 생략가능
     public User findByProviderAndProviderId(@Param("provider") String provider,
                                             @Param("providerId") String providerId);  //MAP로 처리 할 필요 없다
+
+    public int updatePasswordByEmail(@Param("email") String email,
+                                     @Param("password") String password);
+
+    public int updateVerifiedByEmail(@Param("email") String email);
+
 }

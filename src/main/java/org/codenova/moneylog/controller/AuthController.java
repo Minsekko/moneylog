@@ -73,22 +73,35 @@ public class AuthController {
 
 
     @GetMapping("/kakao/callback")
-    public String kakaoCallbackHandle(@RequestParam("code") String code) throws JsonProcessingException {
+    public String kakaoCallbackHandle(@RequestParam("code") String code, HttpSession session) throws JsonProcessingException {
         //log.info("code = {}",code);
         KakoTokenResponse response = kakaoApiService.exchangeToken(code);
 //        log.info("response.idToken = {}", response.getIdToken());
         DecodedJWT decodedJWT = JWT.decode(response.getIdToken());
-        String sub = decodedJWT.getClaim("sub").toString();
-        String nickname = decodedJWT.getClaim("nickname").toString();
-        String picture = decodedJWT.getClaim("picture").toString();
+        String sub = decodedJWT.getClaim("sub").asString();
+        String nickname = decodedJWT.getClaim("nickname").asString();
+        String picture = decodedJWT.getClaim("picture").asString();
 
         log.info("decodedJWT:sub={},nickname= {}, picture={}", sub, nickname, picture);
+
+        User found = userRepository.findByProviderAndProviderId("KAKAO", sub);
+        log.info("found = {}", found);
+        if(found != null) {
+            session.setAttribute("user", found);
+        } else {
+            User user = User.builder().provider("KAKAO")
+                    .providerId(sub).nickname(nickname).picture(picture).verified("T").build();
+            userRepository.save(user);
+            session.setAttribute("user", user);
+        }
+
         return "redirect:/";
     }
 
     @GetMapping("/naver/callback")
     public String naverCallbackHandle(@RequestParam("code") String code,
-                                      @RequestParam String state) throws JsonProcessingException {
+                                      @RequestParam String state,
+                                      HttpSession session) throws JsonProcessingException {
         log.info("code={},state ={}", code, state);// 이 응답을 객체로 파싱해야 한다 Vo를 만든다
         NaverTokenResponse tokenResponse = naverApiService.exchangeToken(code,state);
 
@@ -101,6 +114,20 @@ public class AuthController {
         log.info("profileResponse nickname = {}" , profileResponse.getNickname());
         log.info("profileResponse ProfileImage = {}" , profileResponse.getProfileImage());
 
+        User found = userRepository.findByProviderAndProviderId("NAVER", profileResponse.getId());
+
+        if(found == null) {
+            User user = User.builder()
+                            .nickname(profileResponse.getNickname())
+                            .provider("NAVER")
+                            .providerId(profileResponse.getId())
+                            .verified("T")
+                            .picture(profileResponse.getProfileImage()).build();
+            userRepository.save(user);
+
+        } else {
+            session.setAttribute("user", found);
+        }
         return "redirect:/index";
     }
 

@@ -58,8 +58,8 @@ public class AuthController {
                                   Model model) {
         //log.info("longinHandle...executed");
         User user = userRepository.findByEmail(loginRequest.getEmail());
-        if(user != null && user.getPassword().equals(loginRequest.getPassword())) {
-            session.setAttribute("user",user);
+        if (user != null && user.getPassword().equals(loginRequest.getPassword())) {
+            session.setAttribute("user", user);
             return "redirect:/index";
         } else {
             return "redirect:/auth/login";
@@ -95,59 +95,61 @@ public class AuthController {
     public String findPasswordPostHandle(@ModelAttribute @Valid FindPasswordRequest req,
                                          BindingResult result,
                                          Model model) {
-        if(result.hasErrors()) {
-            model.addAttribute("error","이메일 형식이 아닙니다.");
+        if (result.hasErrors()) {
+            model.addAttribute("error", "이메일 형식이 아닙니다.");
             return "auth/find-password-error";
         }
 
         User found = userRepository.findByEmail(req.getEmail());
         if (found == null) {
-            model.addAttribute("error","해당이메일로 임시번호를 전송할 수 없습니다.");
+            model.addAttribute("error", "해당이메일로 임시번호를 전송할 수 없습니다.");
             return "auth/find-password-error";
         }
 
-        String temporalPassword = UUID.randomUUID().toString().substring(0,8);
+        String temporalPassword = UUID.randomUUID().toString().substring(0, 8);
         userRepository.updatePasswordByEmail(req.getEmail(), temporalPassword);
-        mailService.sendTemporalPasswordMessage(req.getEmail(),temporalPassword);
+        mailService.sendTemporalPasswordMessage(req.getEmail(), temporalPassword);
 
         return "auth/find-password-success";
     }
 
 
-    @PostMapping("/Re-sender")
-    public String reSenderPostHandle(HttpSession session, User user) {
+    @GetMapping("/send-token")
+    public String senderTokenHandle(@SessionAttribute("user") User user, Model model) {
 
-        String token = UUID.randomUUID().toString().replace("-","");
+        String token = UUID.randomUUID().toString().replace("-", "");
 
-        Verification verification = Verification.builder()
+        Verification one = Verification.builder()
                 .token(token)
-                .userEmail(user.getEmail())
                 .expiresAt(LocalDate.now().plusDays(1))
+                .userEmail(user.getEmail())
                 .build();
 
-        verificationRepository.save(verification);
-        //mailService.sendTemporalPasswordMessage(req.getEmail(),temporalPassword);
+        verificationRepository.save(one);
+        mailService.sendVerificationMessage(user, one);
 
-        return "auth/Re-sender";
+        return "auth/send-token";
     }
 
 
+    @GetMapping("/email-verify")
+    public String verificationHandle(@RequestParam("token") String token, Model model) {
+        Verification found = verificationRepository.findByToken(token);
 
-    @GetMapping("/verification")
-    public String verificationHandle(@RequestParam("email") String email, Verification verification, Model model) throws JsonProcessingException {
-        Verification found = verificationRepository.findByToken(email);
-
-        if (found== null) { //email 찾아서 없으면 인증 실패
-            model.addAttribute("error","인증실패");
-        } else if (found.getExpiresAt().isAfter(LocalDate.now())) {
-            model.addAttribute("error","인증만료");
-        } else {
-            userRepository.updateVerifiedByEmail(email);
+        if (found == null) { //email 찾아서 없으면 인증 실패
+            model.addAttribute("error", "유효하지 않는 인증 토큰입니다");
+            return "auth/email-verify-error";
         }
-        return "redirect:/";
+        if (found.getExpiresAt().isBefore(LocalDate.now())) {
+            model.addAttribute("error", "유효기간이 만료된 인증토큰입니다");
+            return "auth/email-verify-error";
+        }
+
+        String userEmail = found.getUserEmail();
+        userRepository.updateVerifiedByEmail(userEmail);
+
+        return "auth/email-verify-sucess";
     }
-
-
 
 
     @GetMapping("/kakao/callback")
@@ -164,7 +166,7 @@ public class AuthController {
 
         User found = userRepository.findByProviderAndProviderId("KAKAO", sub);
         log.info("found = {}", found);
-        if(found != null) {
+        if (found != null) {
             session.setAttribute("user", found);
         } else {
             User user = User.builder().provider("KAKAO")
@@ -181,26 +183,26 @@ public class AuthController {
                                       @RequestParam String state,
                                       HttpSession session) throws JsonProcessingException {
         log.info("code={},state ={}", code, state);// 이 응답을 객체로 파싱해야 한다 Vo를 만든다
-        NaverTokenResponse tokenResponse = naverApiService.exchangeToken(code,state);
+        NaverTokenResponse tokenResponse = naverApiService.exchangeToken(code, state);
 
         log.info("accessToken ={}", tokenResponse.getAccesstoken());
 
         NaverProfileResponse profileResponse
                 = naverApiService.exchangeProfile(tokenResponse.getAccesstoken());
 
-        log.info("profileResponse id = {}" , profileResponse.getId());
-        log.info("profileResponse nickname = {}" , profileResponse.getNickname());
-        log.info("profileResponse ProfileImage = {}" , profileResponse.getProfileImage());
+        log.info("profileResponse id = {}", profileResponse.getId());
+        log.info("profileResponse nickname = {}", profileResponse.getNickname());
+        log.info("profileResponse ProfileImage = {}", profileResponse.getProfileImage());
 
         User found = userRepository.findByProviderAndProviderId("NAVER", profileResponse.getId());
 
-        if(found == null) {
+        if (found == null) {
             User user = User.builder()
-                            .nickname(profileResponse.getNickname())
-                            .provider("NAVER")
-                            .providerId(profileResponse.getId())
-                            .verified("T")
-                            .picture(profileResponse.getProfileImage()).build();
+                    .nickname(profileResponse.getNickname())
+                    .provider("NAVER")
+                    .providerId(profileResponse.getId())
+                    .verified("T")
+                    .picture(profileResponse.getProfileImage()).build();
             userRepository.save(user);
 
         } else {

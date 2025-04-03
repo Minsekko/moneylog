@@ -2,12 +2,12 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.codenova.moneylog.repository.Verification">
+<mapper namespace="org.codenova.moneylog.repository.VerificationRepository">
     <insert id="save">
         insert into verifications (token, user_email, expires_at)
-        values(#{token},#{userEmail},{expiresAt})
+        values(#{token},#{userEmail},#{expiresAt})
     </insert>
-    <select id="findByToken" resultType="token">
+    <select id="findByToken" resultType="verification" parameterType="String">
         select * from verifications where token = #{token}
     </select>
 

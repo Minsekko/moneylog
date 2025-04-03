@@ -7,5 +7,5 @@ import org.codenova.moneylog.entity.Verification;
 @Mapper
 public interface VerificationRepository {
     public int save(Verification verification);
-    public Verification findByToken(@Param("email") String email);
+    public Verification findByToken(@Param("token") String token);
 }

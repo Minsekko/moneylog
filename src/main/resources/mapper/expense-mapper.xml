@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.codenova.moneylog.repository.ExpenseRepository">
+    <insert id="save">
+        insert into
+        expense(user_id, expense_date, description, amount, category_id)
+        values
+        (#{userId},#{expenseDate},#{description},#{amount},#{categoryId})
+    </insert>
+<!--    <select id="findByUserId" resultType="expense">
+        select * from expense
+        where user_id=#{userId}
+        order by expense_date asc, id asc
+    </select> !-->
+    <select id="findByUserIdAndDuration" resultType="expense">
+        select * from expense
+        where user_id=#{userId} and expense_date between #{startDate} and #{endDate}
+        order by expense_date asc, id asc
+    </select>
+    <select id="findByUserId" resultType="expense">
+        select e.id,
+        e.user_id,
+        e.expense_date,
+        e.description,
+        e.amount,
+        c.name
+        from expense e
+        join categorys c on e.category_id = c.id
+        where e.user_id =#{userId}
+        order by expense_date asc, id asc
+    </select>
+</mapper>

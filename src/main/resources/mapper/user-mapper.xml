@@ -7,7 +7,7 @@
         insert into
         users(email, password, nickname, picture, provider, provider_id, verified, create_at)
         values
-        (#{email},#{password},#{nickname},#{picture},#{provider},#{provider_id},#{verified},now())
+        (#{email},#{password},#{nickname},#{picture},#{provider},#{providerId},#{verified},now())
     </insert>
     <select id="findByEmail" resultType="user">
         select * from users where email=#{email}
@@ -15,4 +15,10 @@
     <select id="findByProviderAndProviderId" resultType="user">
         select * from users where provider=#{provider} and provider_id=#{providerId}
     </select>
+    <update id="updatePasswordByEmail">
+        update users set password=#{password} where email=#{email}
+    </update>
+    <update id="updateVerifiedByEmail">
+        update users set verified='T' where email=#{email}
+    </update>
 </mapper>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>머니로그</title>
+</head>
+<body>
+<div>
+  <div style="text-align: right">
+    <span th:text="${user.nickname}"></span> (<small th:text="${user.provider}"></small>)
+      <span th:if="${user.verified=='T'}">인증</span>
+      <span th:if="${user.verified=='F'}">인증필요</span>
+  </div>
+</div>
+</body>
+</html>

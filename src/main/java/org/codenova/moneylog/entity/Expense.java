@@ -15,4 +15,5 @@ public class Expense {
     private String description;
     private long amount;
     private int categoryId;
+    private String name;
 }

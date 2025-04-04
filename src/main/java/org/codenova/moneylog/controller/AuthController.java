@@ -175,7 +175,7 @@ public class AuthController {
             session.setAttribute("user", user);
         }
 
-        return "redirect:/";
+        return "redirect:/index";
     }
 
     @GetMapping("/naver/callback")

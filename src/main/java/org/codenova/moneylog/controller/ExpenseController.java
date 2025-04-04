@@ -33,7 +33,11 @@ public class ExpenseController {
         model.addAttribute("categorys", categoryRepository.findByAll());
         model.addAttribute("now", LocalDate.now());
 
-        model.addAttribute("expense",expenseRepository.findByUserId(user.getId()));
+        model.addAttribute("expense",expenseRepository.findWithCategoryByUserId(user.getId()));
+
+        //model.addAttribute(expenseRepository.findByUserIdAndDuration(user.getId(),LocalDate.now().minusDays(10), LocalDate.now()));
+
+        //findByWithCategoryByUserIdAndDuration
         return "expense/history";
     }
 
@@ -42,6 +46,11 @@ public class ExpenseController {
                                     BindingResult bindingResult,
                                     @SessionAttribute("user") User user,
                                     Model model) {
+
+        if(user.getVerified().equals("F")) {  //인증이 되지 않은 사용자이면 인증 되지 않았다고 에러 표기
+            return "/history-error";
+        }
+
         if (bindingResult.hasErrors()) {
             return "/history-error";
         }

@@ -67,8 +67,8 @@
                 <input type="checkbox"/></td>
             <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.expenseDate}"></td>
             <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.description}"></td>
-            <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.amount}"></td>
-            <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.categoryId}"></td>
+            <td style="padding: 8px; border: 1px solid #ccc;" th:text="${#numbers.formatInteger(one.amount,1,'COMMA') }"></td>
+            <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.categoryName}"></td>
         </tr>
         </tbody>
     </table>

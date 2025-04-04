@@ -42,6 +42,8 @@ public class LocalDateTimeTests {
         LocalDate today = LocalDate.now();
 
         System.out.println(today.minusDays(today.getDayOfMonth()));
+        LocalDate fisrtday = today.minusDays(today.getDayOfMonth()-1);
+        System.out.println(fisrtday);
         LocalDate day = today.minusDays(today.getDayOfMonth());
         System.out.println(day.plusMonths(1));
         //System.out.println(today.plusMonths(0));

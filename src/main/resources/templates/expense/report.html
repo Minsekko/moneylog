@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h2>일별 지출 추이</h2>
+<ul>
+  <li th:each="one: ${dailyExpense}">
+    <span th:text="${one.expenseDate}"></span>
+    <small th:text="${one.total}"></small>
+  </li>
+</ul>
+<h2>카테고리별 지출 통계</h2>
+<p th:each="one:${categoryData}">
+  <span th:text="${one.categoryName}"></span>
+  <span th:text="${one.total}"></span>
+</p>
+
+</body>
+</html>

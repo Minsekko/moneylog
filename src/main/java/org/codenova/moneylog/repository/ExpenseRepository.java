@@ -3,6 +3,7 @@ package org.codenova.moneylog.repository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.codenova.moneylog.entity.Expense;
+import org.codenova.moneylog.query.DailyExpense;
 import org.codenova.moneylog.query.ExpenseSumCategory;
 import org.codenova.moneylog.query.ExpenseWithCategory;
 
@@ -26,4 +27,10 @@ public interface ExpenseRepository {
     public List<ExpenseSumCategory> getCategoryByUserIdDuration (@Param("userId") int userId,
                                                                      @Param("startDate")LocalDate startDate,
                                                                      @Param("endDate")LocalDate endDate);
+    public List<ExpenseSumCategory> getCategoryExpenseByUserIdOrderByCategoryId (@Param("userId") int userId,
+                                                                 @Param("startDate")LocalDate startDate,
+                                                                 @Param("endDate")LocalDate endDate);
+    public List<DailyExpense> getDailyExpenseByUserIdAndPeriod (@Param("userId") int userId,
+                                                                @Param("startDate")LocalDate startDate,
+                                                                @Param("endDate")LocalDate endDate);
 }

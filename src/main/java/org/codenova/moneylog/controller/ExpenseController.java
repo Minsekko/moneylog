@@ -8,6 +8,7 @@ import org.codenova.moneylog.entity.Expense;
 import org.codenova.moneylog.entity.User;
 import org.codenova.moneylog.repository.CategoryRepository;
 import org.codenova.moneylog.repository.ExpenseRepository;
+import org.codenova.moneylog.repository.SearchPeriodRequest;
 import org.codenova.moneylog.repository.UserRepository;
 import org.codenova.moneylog.request.AddExpenseRequest;
 import org.codenova.moneylog.service.MailService;
@@ -29,13 +30,31 @@ public class ExpenseController {
     private ExpenseRepository expenseRepository;
 
     @GetMapping("/history")
-    public String historyHandel(@SessionAttribute("user") User user,Model model) {
+    public String historyHandel(@SessionAttribute("user") User user,
+                                @ModelAttribute SearchPeriodRequest searchPeriodRequest,
+                                Model model) {
+
+        LocalDate startDate;
+        LocalDate endDate;
+
+        if(searchPeriodRequest.getStartDate() !=null && searchPeriodRequest.getEndDate() != null) {
+            startDate = searchPeriodRequest.getStartDate();
+            endDate = searchPeriodRequest.getEndDate();
+        }else {
+            LocalDate today = LocalDate.now();
+            startDate = today.minusDays(today.getDayOfMonth() - 1);
+            endDate = startDate.plusMonths(1).minusDays(1);
+        }
+
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+
         model.addAttribute("categorys", categoryRepository.findByAll());
         model.addAttribute("now", LocalDate.now());
 
-        model.addAttribute("expense",expenseRepository.findWithCategoryByUserId(user.getId()));
+        //model.addAttribute("expense",expenseRepository.findWithCategoryByUserId(user.getId()));
 
-        //model.addAttribute(expenseRepository.findByUserIdAndDuration(user.getId(),LocalDate.now().minusDays(10), LocalDate.now()));
+        model.addAttribute("expense",expenseRepository.findByUserIdAndDuration(user.getId(),startDate, endDate));
 
         //findByWithCategoryByUserIdAndDuration
         return "expense/history";

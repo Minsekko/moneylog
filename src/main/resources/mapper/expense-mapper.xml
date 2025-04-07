@@ -16,11 +16,13 @@
         order by expense_date asc, id asc
     </select>
 
-    <select id="findByUserIdAndDuration" resultType="expense">
-        select * from expense
+    <select id="findByUserIdAndDuration" resultType="expenseWithCategory">
+        select expense.*, categorys.name as category_name from expense
+        join categorys on expense.category_id = categorys.id
         where user_id=#{userId} and expense_date between #{startDate} and #{endDate}
         order by expense_date asc, id asc
     </select>
+
     <select id="findWithCategoryByUserId" resultType="ExpenseWithCategory">
         select e.id,
                e.user_id,

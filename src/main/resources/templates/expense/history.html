@@ -47,12 +47,12 @@
           style="margin-bottom: 30px; display: flex; justify-content: center;
       align-items: center; padding: 20px; gap: 20px;">
 
-        <input type="date" name="startDate" th:value="${startDate}"
+        <input type="date" name="startDate" th:value="${startDate}" id="startDate"
                onchange="event.target.nextElementSibling.nextElementSibling.value = '2025-01-10';"
                style="padding: 10px 12px; font-size: 18px; font-weight: 300; text-align: center; border: 1px solid #ccc; border-radius: 6px;">
 
         <span style="font-size:20px">~</span>
-        <input type="date" name="endDate" th:value="${endDate}"
+        <input type="date" name="endDate" th:value="${endDate}" id="endDate"
                style="padding: 10px 12px; font-size: 18px; font-weight: 300; text-align: center; border: 1px solid #ccc; border-radius: 6px;">
 
         <button type="submit"
@@ -63,7 +63,7 @@
     </form>
 
 
- 📋 지출 내역 테이블
+    📋 지출 내역 테이블
     <table style="border-collapse: collapse; width: 100%; margin-bottom: 30px;">
         <thead>
         <tr style="background-color: #f2f2f2;">
@@ -83,7 +83,8 @@
                 <input type="checkbox"/></td>
             <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.expenseDate}"></td>
             <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.description}"></td>
-            <td style="padding: 8px; border: 1px solid #ccc;" th:text="${#numbers.formatInteger(one.amount,1,'COMMA') }"></td>
+            <td style="padding: 8px; border: 1px solid #ccc;"
+                th:text="${#numbers.formatInteger(one.amount,1,'COMMA') }"></td>
             <td style="padding: 8px; border: 1px solid #ccc;" th:text="${one.categoryName}"></td>
         </tr>
         </tbody>
@@ -99,7 +100,9 @@
                         <input type="date" name="expenseDate" th:max="${now}" style="width: 100%;"/>
                     </td>
                     <td style="padding: 8px; border: 1px solid #ccc;  width: 45%;">
-                        <input type="text" name="description"  style="width: 100%; "/>
+                        <input type="text" name="description" id="description" list="x" style="width: 100%; "/>
+                        <datalist id = "x">
+                        </datalist>
                     </td>
                     <td style="padding: 8px; border: 1px solid #ccc;  width: 15%;">
                         <input type="number" name="amount" style="width: 100%;"/>
@@ -121,5 +124,37 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.getElementById("description").onchange = function (evt) {
+        console.log(evt.target.value);
+        fetch("/api/expense/auto-complete?word=" + evt.target.value, {
+            method: "get"
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            console.log(text);
+            const items = text.split(",");
+            let optionsHTML = "";
+            for(let one of items) {
+                optionsHTML += "<option>"+one+"</option>";
+            }
+            document.getElementById("x").innerHTML = optionsHTML;
+        });
+    };
+</script>
+
+<script>
+    document.getElementById("startDate").onchange = function (evt) {
+        console.log(evt.target.value);
+        fetch("/api/expense/next-month?date=" + evt.target.value, {
+            method: "get"
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            document.getElementById("endDate").value = text;
+        });
+    };
+</script>
 </body>
 </html>

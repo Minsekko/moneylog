@@ -1,23 +1,31 @@
 package org.codenova.moneylog.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import org.codenova.moneylog.entity.Category;
+import org.codenova.moneylog.entity.Expense;
+import org.codenova.moneylog.entity.User;
+import org.codenova.moneylog.query.DailyExpense;
+import org.codenova.moneylog.query.ExpenseSumCategory;
+import org.codenova.moneylog.reponse.ChartDataResponse;
 import org.codenova.moneylog.repository.ExpenseRepository;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/api/expense")
+@AllArgsConstructor
 public class ExpenseApiController {
-    private final ExpenseRepository expenseRepository;
+    private ExpenseRepository expenseRepository;
+    private ObjectMapper objectMapper;
 
-    public ExpenseApiController(ExpenseRepository expenseRepository) {
-        this.expenseRepository = expenseRepository;
-    }
 
     @GetMapping("/next-month")
     @ResponseBody
@@ -29,8 +37,64 @@ public class ExpenseApiController {
 
     @GetMapping("/auto-complete")
     @ResponseBody
-    public String autoComplete(@RequestParam("word") String word) {
+    public String autoComplete(@RequestParam("word") String word) throws JsonProcessingException {
         List<String> list = expenseRepository.getDistinctDescription(word+"%");
-        return list.toString().replace("[","").replace("]","");
+        return objectMapper.writeValueAsString(list);
+    }
+
+    @GetMapping("/dataset/category")
+    @ResponseBody
+    public String datasetCategory(@SessionAttribute("user") User user) throws JsonProcessingException {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(today.getDayOfMonth() - 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+
+        List<ExpenseSumCategory> expenseSumCategories = expenseRepository.getCategoryExpenseByUserIdOrderByCategoryId(user.getId(), startDate,endDate);
+
+        List<String> labels = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
+
+        for (ExpenseSumCategory expenseSumCategory : expenseSumCategories) {
+            labels.add(expenseSumCategory.getCategoryName());
+            data.add(expenseSumCategory.getTotal());
+        }
+
+        return objectMapper.writeValueAsString(ChartDataResponse.builder().labels(labels).data(data).build());
+    }
+
+    @GetMapping("/dataset/daily")
+    @ResponseBody
+    public String dailyCategory(@SessionAttribute("user") User user) throws JsonProcessingException {
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(today.getDayOfMonth() - 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+
+        List<DailyExpense> list = expenseRepository.getDailyExpenseByUserIdAndPeriod(user.getId(), startDate, endDate);
+
+        Map<LocalDate, DailyExpense> listMap = new HashMap<>();
+        for(DailyExpense expense : list){
+            listMap.put(expense.getExpenseDate(),expense);
+        }
+        List<DailyExpense> fullList = new ArrayList<>();
+
+        for (int i=0; startDate.plusDays(i).isBefore(endDate) || startDate.plusDays(i).equals(endDate); i++){
+            LocalDate d = startDate.plusDays(i);
+            if(listMap.get(d) != null) {
+                fullList.add(listMap.get(d));
+            } else {
+                fullList.add(DailyExpense.builder().expenseDate(d).total(0).build());
+            }
+        }
+
+        List<String> labels = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
+
+        for (DailyExpense one : fullList) {
+            labels.add(one.getExpenseDate().toString());
+            data.add(one.getTotal());
+        }
+
+        return objectMapper.writeValueAsString(ChartDataResponse.builder().labels(labels).data(data).build());
     }
 }
